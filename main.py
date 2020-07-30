@@ -59,17 +59,23 @@ def gotoposition_steppermotor(x,y,z):
 	#do a for loop from current step to step required with steps having sign - or positive and update the currentpos_stepper variable too
 	for x in range(currentservopos[0],x_reach_insteps,sign(x_reach_insteps-currentservopos[0]) * step_value):
 		xaxis_steppermotor(sign(x_reach_insteps-currentservopos[0]) * step_value)
-		currentpos_stepper[0] += sign(x_reach_insteps-currentservopos[0]) * step_value * step_distance
+		currentpos_stepper[0] += sign(x_reach_insteps-currentservopos[0]) * step_distance
+
+	if not (currentpos_stepper[0] - x) == 0 : xaxis_steppermotor(sign(currentpos_stepper[0] - x) * (currentpos_stepper[0] - x) / step_constant) #goto extra distance if the for function had some remainder
 
 		#do a for loop from current step to step required with steps having sign - or positive and update the currentpos_stepper variable too
 	for y in range(currentservopos[1],y_reach_insteps,sign(y_reach_insteps-currentservopos[1]) * step_value):
 		xaxis_steppermotor(sign(y_reach_insteps-currentservopos[1]) * step_value)
-		currentpos_stepper[1] += sign(y_reach_insteps-currentservopos[1]) * step_value * step_distance
+		currentpos_stepper[1] += sign(y_reach_insteps-currentservopos[1]) * step_distance
+
+	if not (currentpos_stepper[1] - y) == 0 : xaxis_steppermotor(sign(currentpos_stepper[1] - y) * (currentpos_stepper[1] - y) / step_constant) #goto extra distance if the for function had some remainder
 
 		#do a for loop from current step to step required with steps having sign - or positive and update the currentpos_stepper variable too
 	for z in range(currentservopos[2],z_reach_insteps,sign(z_reach_insteps-currentservopos[2]) * step_value):
 		xaxis_steppermotor(sign(z_reach_insteps-currentservopos[2]) * step_value)
-		currentpos_stepper[2] += sign(z_reach_insteps-currentservopos[2]) * step_value * step_distance
+		currentpos_stepper[2] += sign(z_reach_insteps-currentservopos[2]) * step_distance
+
+	if not (currentpos_stepper[2] - z) == 0 : xaxis_steppermotor(sign(currentpos_stepper[2] - z) * (currentpos_stepper[2] - z) / step_constant) #goto extra distance if the for function had some remainder
 
 
 	#so what we did here was get the positions to go to substract it from currentposition then we get cartesian distance which is divided by step constant
