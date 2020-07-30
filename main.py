@@ -11,6 +11,10 @@ step_constant = 0.1 # this is an experimental value to be determined for unit di
 step_value = steps_stepper * gearratio_stepper * speed_constant #the step value the motor takes
 step_distance = step_value * step_constant # the distance the motor will make the load move on one step
 
+x_max_distance = step_distance * 100 #the maximux x distance the plotter can go (the second is the constant which controls the distance is experimental value)
+y_max_distance = step_distance * 20 #the maximux x distance the plotter can go (the second is the constant which controls the distance is experimental value)
+z_max_distance = step_distance * 50 #the maximux x distance the plotter can go (the second is the constant which controls the distance is experimental value)
+
 currentpos_stepper = [0,0,0] #this determines where the robot is now,ie the robot gripper
 
 
@@ -84,9 +88,16 @@ def gotoposition_steppermotor(x,y,z):
 	pass
 
 
+def findpickbox_recognize():
+	#we have to find the box by identifying the borders of tape
+
+	pass
+
+
 def main():
 	if !checkifhomed():
 		homeall_steppermotors()
+
 
 	gotoposition_steppermotor(x,y,x)
 
