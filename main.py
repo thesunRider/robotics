@@ -1,3 +1,12 @@
+#NOTICE! -- ALL CODE BUILT FROM SCRATCH , MAINTANED , DOCUMENTED BY SURYASARADHI,TARUNSHARMA .
+#PLEASE NOTIFY BEFORE USING.
+
+import cv2 #for object detection
+import numpy as np 
+import openni #for kinect
+from common.camera import Camera
+from common.draw import Gravity, put_text
+
 #all position are relative to homing positions
 #all axis are wrt to homing position
 #x- parallel to the rails that connect end to end
@@ -18,8 +27,21 @@ z_max_distance = step_distance * 50 #the maximux x distance the plotter can go (
 currentpos_stepper = [0,0,0] #this determines where the robot is now,ie the robot gripper
 distanceofcamera_fromgrippertip = [100,100,100] # experimental value determining the distance from camera to the tip of the grip
 
+armcameraoffset = [20,20,20] #experimental value where we give the distance btwn the camera and the arm tip
 
 sign = lambda x: (1, -1)[x<0] #can be called as function returns sign of the parameter
+kinect_depth_data = [] #initialize variable to hold data from kinect
+
+pygame.init() # initialize kinect libraries
+screen = pygame.display.set_mode(DEPTH_WINSIZE, 0, 8)
+screen.set_palette(tuple([(i, i, i) for i in range(256)]))
+pygame.display.set_caption('Depth Map data') #display the depth map from kinect
+
+with nui.Runtime() as kinect:
+	kinect.depth_frame_ready += depth_frame_ready   
+	kinect.depth_stream.open(nui.ImageStreamType.Depth, 2, nui.ImageResolution.Resolution320x240, nui.ImageType.Depth)
+
+
 
 def xaxis_steppermotor(stp):
 	#the x position to go to
@@ -112,21 +134,78 @@ def gotoposition_steppermotor(x,y,z):
 	pass
 
 
-def findpickbox_recognize():
-	#we have to find the box by identifying the borders of tape
-
-	pass
-
 def findobjects_recognize():
-	pass
+	#we have to find the box by identifying the borders of tape
+	# shapes.xml contanins data about the shapes the native shapes it is supposed to recognize
+	body_classifier = cv2.CascadeClassifier('shapes.xml')
+	# Capture Video from kinect
+	kinectindex = 3
+	cap = cv2.VideoCapture(kinectindex)
+
+	arraypos = [] #create an array holding the position breadth and height of the objects recognized
+	retid = True #assume an object exists and is detected,this is changed by another logic if the object is not detected
+
+	while cap.isOpened():
+		# Read the capture
+		ret,frame = cap.read()
+
+		# Pass the Frame to the Classifier
+		bodies = body_classifier.detectMultiScale(frame,1.2,3)
+
+ 		if ret ==True:
+			# Bound Boxes to Identified Bodies
+ 			for (x,y,w,h) in bodies:
+				cv2.rectangle(frame,
+							(x,y),
+							(x+w,y+h),
+							(25,125,255),
+								5)
+
+				arraypos.append(x,y,w,h)
+				cv2.imshow('Detected Objects',frame) #display the results
+
+    	else:
+    		retid = False #if no object is recognized return false
+        	break
+
+	# Release the Capture & Destroy All Windows
+	cap.release()
+	cv2.destroyAllWindows()
+	if ret :
+		return arraypos #return the location of the object is something is detected.
+	else
+		return false # return false if nothing is detected.
+
+def depth_frame_ready(frame): #pass the frame parameter reuired for kinect to get depthdata,THIS IS A CALLBACK FUCNCTION!
+    with screen_lock:
+        frame.image.copy_bits(tmp_s._pixels_address)
+        arr2d = (pygame.surfarray.pixels2d(tmp_s) >> 7) & 255
+        pygame.surfarray.blit_array(screen, arr2d)
+        pygame.display.update()
+        kinect_depth_data = arr2d #sets the depth map to a global array
+
+
 
 
 def main():
-	#if not checkifhomed_steppermotors():
-	#homeall_steppermotors()
+	
+	#make sure the robot is at 0,0,0
+	if not checkifhomed_steppermotors():
+		homeall_steppermotors()
 
-	gotoposition_steppermotor(180,200,500)
-	gotoposition_steppermotor(0,50,70)
+	while True:		
+		#search for objects in the current view and get all recognized objects position,width and height
+		arypos = findobjects_recognize()
+		
+		if arypos: #check if the object returns false or not, CHECK: findobject_recognnize() function
+			xposition_object1 = arypos[0]
+			yposition_object1 = arypos[1]
+			if xposition_object1 < armcameraoffset[0] and yposition_object1 < armcameraoffset[1] : #move the stepper until the arm comes directly above the first object recognised
+				gotoposition_steppermotor(currentpos_stepper + [10,0,0]) #move the robot in the xdirection 
+
+
+		zdepth = kinect_depth_data[currentpos_stepper[0],currentpos_stepper[1]] #get zdepth from kinect
+		
 
 #--------------------------------------------------
 #default excution starts below

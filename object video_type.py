@@ -22,7 +22,7 @@ while cap.isOpened():
                          (x+w,y+h),
                          (25,125,255),
                          5)
-            cv2.imshow('Pedestrians',frame)
+            cv2.imshow('Detected Objects',frame)
 
         # Exit with Esc button
         if cv2.waitKey(1) == 27:
